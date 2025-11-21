@@ -1,0 +1,108 @@
+@import '../assets/styles/variables.scss';
+
+.platform-card {
+  background-color: $color-bg-secondary-light;
+  border: 1px solid $color-border-light;
+  border-radius: $radius-xl;
+  padding: $spacing-lg;
+  cursor: pointer;
+  transition: all $transition-base;
+
+  .dark & {
+    background-color: $color-bg-secondary-dark;
+    border-color: $color-border-dark;
+  }
+
+  &:hover {
+    border-color: $color-primary;
+    box-shadow: $shadow-lg;
+    transform: translateY(-4px);
+
+    .platform-card__action {
+      opacity: 1;
+    }
+  }
+
+  &__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: $spacing-md;
+  }
+
+  &__icon {
+    padding: $spacing-md;
+    border-radius: $radius-lg;
+
+    &--red {
+      background-color: rgba($color-red, 0.1);
+      color: $color-red;
+    }
+
+    &--green {
+      background-color: rgba($color-green, 0.1);
+      color: $color-green;
+    }
+
+    &--blue {
+      background-color: rgba($color-blue, 0.1);
+      color: $color-blue;
+    }
+
+    &--yellow {
+      background-color: rgba($color-yellow, 0.1);
+      color: $color-yellow;
+    }
+  }
+
+  &__version {
+    padding: $spacing-xs $spacing-sm;
+    font-size: $text-xs;
+    font-family: monospace;
+    background-color: rgba($color-border-light, 0.5);
+    color: $color-text-secondary-light;
+    border-radius: $radius-sm;
+
+    .dark & {
+      background-color: rgba($color-border-dark, 1);
+      color: $color-text-secondary-dark;
+    }
+  }
+
+  &__title {
+    font-size: $text-lg;
+    font-weight: 600;
+    margin-bottom: $spacing-xs;
+    color: $color-text-light;
+
+    .dark & {
+      color: $color-text-dark;
+    }
+  }
+
+  &__code {
+    font-size: $text-sm;
+    font-family: monospace;
+    color: $color-text-secondary-light;
+
+    .dark & {
+      color: $color-text-secondary-dark;
+    }
+  }
+
+  &__action {
+    margin-top: $spacing-lg;
+    display: flex;
+    align-items: center;
+    font-size: $text-sm;
+    color: $color-primary;
+    font-weight: 500;
+    opacity: 0;
+    transition: opacity $transition-base;
+
+    svg {
+      margin-left: $spacing-xs;
+    }
+  }
+}
+

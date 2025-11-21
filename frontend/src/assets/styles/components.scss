@@ -1,0 +1,250 @@
+@import './variables.scss';
+
+// Status Indicator
+.status-indicator {
+  display: flex;
+  align-items: center;
+  padding: $spacing-xs $spacing-md;
+  border-radius: $radius-full;
+  background-color: rgba($color-border-light, 0.5);
+  border: 1px solid $color-border-light;
+  font-size: $text-xs;
+
+  .dark & {
+    background-color: rgba($color-border-dark, 1);
+    border-color: $color-border-dark;
+  }
+
+  &__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: $radius-full;
+    margin-right: $spacing-sm;
+    
+    &.animate {
+      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+  }
+
+  &__text {
+    font-family: monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+    color: $color-text-secondary-light;
+
+    .dark & {
+      color: $color-text-secondary-dark;
+    }
+  }
+}
+
+// Dropdown
+.dropdown {
+  position: relative;
+  display: inline-block;
+
+  &__menu {
+    position: absolute;
+    right: 0;
+    margin-top: $spacing-sm;
+    width: 160px;
+    background-color: $color-bg-secondary-light;
+    border-radius: $radius-lg;
+    box-shadow: $shadow-xl;
+    border: 1px solid $color-border-light;
+    padding: $spacing-xs 0;
+    z-index: $z-dropdown;
+    display: none;
+    animation: fadeIn $transition-fast;
+
+    .dark & {
+      background-color: $color-bg-secondary-dark;
+      border-color: $color-border-dark;
+    }
+  }
+
+  &__item {
+    width: 100%;
+    text-align: left;
+    padding: $spacing-sm $spacing-md;
+    font-size: $text-sm;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: background-color $transition-fast;
+    color: $color-text-secondary-light;
+
+    .dark & {
+      color: $color-text-secondary-dark;
+    }
+
+    &:hover {
+      background-color: rgba($color-border-light, 0.3);
+
+      .dark & {
+        background-color: rgba($color-border-dark, 0.5);
+      }
+    }
+
+    &--active {
+      color: $color-primary;
+      background-color: rgba($color-primary, 0.1);
+
+      .dark & {
+        background-color: rgba($color-primary, 0.2);
+      }
+    }
+  }
+}
+
+// User Avatar
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: $radius-full;
+  background: linear-gradient(135deg, $color-primary, $color-purple);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: $text-xs;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform $transition-fast;
+
+  &:hover {
+    transform: scale(1.05);
+  }
+}
+
+// Loading Spinner
+.spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba($color-primary, 0.2);
+  border-top-color: $color-primary;
+  border-radius: $radius-full;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// Alert/Notification
+.alert {
+  padding: $spacing-md;
+  border-radius: $radius-lg;
+  font-size: $text-sm;
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+
+  &--info {
+    background-color: rgba($color-info, 0.1);
+    color: $color-info;
+    border: 1px solid rgba($color-info, 0.3);
+  }
+
+  &--success {
+    background-color: rgba($color-success, 0.1);
+    color: $color-success;
+    border: 1px solid rgba($color-success, 0.3);
+  }
+
+  &--warning {
+    background-color: rgba($color-warning, 0.1);
+    color: $color-warning;
+    border: 1px solid rgba($color-warning, 0.3);
+  }
+
+  &--error {
+    background-color: rgba($color-error, 0.1);
+    color: $color-error;
+    border: 1px solid rgba($color-error, 0.3);
+  }
+}
+
+// Modal Overlay (if needed in the future)
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: $z-modal;
+  animation: fadeIn $transition-base;
+}
+
+.modal {
+  background-color: $color-bg-secondary-light;
+  border-radius: $radius-xl;
+  padding: $spacing-xl;
+  max-width: 600px;
+  width: 90%;
+  max-height: 90vh;
+  overflow: auto;
+  box-shadow: $shadow-xl;
+  animation: slideIn $transition-base;
+
+  .dark & {
+    background-color: $color-bg-secondary-dark;
+  }
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: $spacing-lg;
+  }
+
+  &__title {
+    font-size: $text-xl;
+    font-weight: 700;
+    color: $color-text-light;
+
+    .dark & {
+      color: $color-text-dark;
+    }
+  }
+
+  &__close {
+    padding: $spacing-sm;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: $color-text-secondary-light;
+    transition: color $transition-fast;
+
+    .dark & {
+      color: $color-text-secondary-dark;
+    }
+
+    &:hover {
+      color: $color-text-light;
+
+      .dark & {
+        color: $color-text-dark;
+      }
+    }
+  }
+
+  &__content {
+    margin-bottom: $spacing-lg;
+  }
+
+  &__footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: $spacing-md;
+  }
+}
+

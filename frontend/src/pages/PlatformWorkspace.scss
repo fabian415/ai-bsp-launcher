@@ -1,0 +1,197 @@
+@import '../assets/styles/variables.scss';
+
+.platform-workspace {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.workspace-header {
+  margin-bottom: $spacing-lg;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: $spacing-md;
+}
+
+.back-link {
+  font-size: $text-xs;
+  color: $color-primary;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  margin-bottom: $spacing-xs;
+  display: block;
+  transition: opacity $transition-fast;
+
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
+.workspace-title {
+  font-size: $text-2xl;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  color: $color-text-light;
+
+  .dark & {
+    color: $color-text-dark;
+  }
+}
+
+.workspace-badge {
+  padding: $spacing-xs $spacing-md;
+  font-size: $text-xs;
+  font-family: monospace;
+  background-color: rgba($color-primary, 0.1);
+  color: $color-primary;
+  border-radius: $radius-full;
+  border: 1px solid rgba($color-primary, 0.2);
+
+  .dark & {
+    background-color: rgba($color-primary, 0.2);
+    border-color: rgba($color-primary, 0.3);
+  }
+}
+
+.workspace-actions {
+  display: flex;
+  gap: $spacing-md;
+}
+
+.workspace-grid {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: $spacing-lg;
+  flex: 1;
+  min-height: 0;
+}
+
+.workspace-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+}
+
+.workspace-main {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.status-list {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.status-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  &__label {
+    font-size: $text-sm;
+    color: $color-text-secondary-light;
+
+    .dark & {
+      color: $color-text-secondary-dark;
+    }
+  }
+
+  &__value {
+    font-size: $text-sm;
+    font-weight: 500;
+    color: $color-text-light;
+
+    .dark & {
+      color: $color-text-dark;
+    }
+
+    &--success {
+      color: $color-success;
+      display: flex;
+      align-items: center;
+      gap: $spacing-xs;
+    }
+
+    &--mono {
+      font-family: monospace;
+    }
+  }
+}
+
+.config-options {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.config-option {
+  display: flex;
+  align-items: center;
+  padding: $spacing-md;
+  border: 1px solid $color-border-light;
+  border-radius: $radius-lg;
+  cursor: pointer;
+  transition: all $transition-fast;
+
+  .dark & {
+    border-color: $color-border-dark;
+  }
+
+  &:hover {
+    background-color: rgba($color-border-light, 0.3);
+
+    .dark & {
+      background-color: rgba($color-border-dark, 0.5);
+    }
+  }
+
+  input[type="radio"] {
+    margin-right: $spacing-md;
+    accent-color: $color-primary;
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__title {
+    font-size: $text-sm;
+    font-weight: 500;
+    color: $color-text-light;
+
+    .dark & {
+      color: $color-text-dark;
+    }
+  }
+
+  &__desc {
+    font-size: $text-xs;
+    color: $color-text-secondary-light;
+
+    .dark & {
+      color: $color-text-secondary-dark;
+    }
+  }
+}
+
+@media (max-width: 1024px) {
+  .workspace-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .workspace-main {
+    min-height: 400px;
+  }
+}
+

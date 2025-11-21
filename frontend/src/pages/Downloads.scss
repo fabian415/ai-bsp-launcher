@@ -1,0 +1,193 @@
+@import '../assets/styles/variables.scss';
+
+.downloads {
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: $spacing-lg;
+  }
+
+  &__title {
+    font-size: $text-2xl;
+    font-weight: 700;
+    color: $color-text-light;
+
+    .dark & {
+      color: $color-text-dark;
+    }
+  }
+}
+
+.downloads-table {
+  background-color: $color-bg-secondary-light;
+  border: 1px solid $color-border-light;
+  border-radius: $radius-xl;
+  overflow: hidden;
+  box-shadow: $shadow-sm;
+
+  .dark & {
+    background-color: $color-bg-secondary-dark;
+    border-color: $color-border-dark;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: $text-sm;
+  }
+
+  thead {
+    background-color: rgba($color-border-light, 0.3);
+    color: $color-text-secondary-light;
+    font-weight: 500;
+
+    .dark & {
+      background-color: rgba($color-border-dark, 0.5);
+      color: $color-text-secondary-dark;
+    }
+
+    th {
+      padding: $spacing-md $spacing-lg;
+      text-align: left;
+
+      &.text-right {
+        text-align: right;
+      }
+    }
+  }
+
+  tbody {
+    tr {
+      border-bottom: 1px solid $color-border-light;
+      transition: background-color $transition-fast;
+
+      .dark & {
+        border-color: $color-border-dark;
+      }
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      &:hover {
+        background-color: rgba($color-border-light, 0.2);
+
+        .dark & {
+          background-color: rgba($color-border-dark, 0.3);
+        }
+      }
+    }
+
+    td {
+      padding: $spacing-md $spacing-lg;
+
+      &.file-size,
+      &.file-date {
+        color: $color-text-secondary-light;
+
+        .dark & {
+          color: $color-text-secondary-dark;
+        }
+      }
+
+      &.text-right {
+        text-align: right;
+      }
+    }
+  }
+}
+
+.file-name {
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+  color: $color-text-light;
+
+  .dark & {
+    color: $color-text-dark;
+  }
+}
+
+.file-icon {
+  margin-right: $spacing-md;
+  padding: $spacing-sm;
+  background-color: rgba($color-border-light, 0.5);
+  border-radius: $radius-sm;
+  color: $color-text-secondary-light;
+
+  .dark & {
+    background-color: rgba($color-border-dark, 1);
+    color: $color-text-secondary-dark;
+  }
+}
+
+.download-progress {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: $spacing-md;
+
+  &__text {
+    font-size: $text-xs;
+    color: $color-primary;
+  }
+
+  &__bar {
+    width: 96px;
+    height: 6px;
+    background-color: rgba($color-border-light, 1);
+    border-radius: $radius-full;
+    overflow: hidden;
+
+    .dark & {
+      background-color: rgba($color-text-secondary-dark, 0.3);
+    }
+  }
+
+  &__fill {
+    height: 100%;
+    background-color: $color-primary;
+    transition: width $transition-base;
+  }
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: $spacing-xs $spacing-sm;
+  border-radius: $radius-full;
+  font-size: $text-xs;
+  font-weight: 500;
+
+  &--success {
+    background-color: rgba($color-success, 0.1);
+    color: $color-success;
+
+    .dark & {
+      background-color: rgba($color-success, 0.2);
+    }
+  }
+}
+
+.btn-link {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  background: transparent;
+  border: none;
+  color: $color-primary;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color $transition-fast;
+
+  &:hover {
+    color: $color-primary-hover;
+  }
+}
+

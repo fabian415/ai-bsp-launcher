@@ -1,0 +1,138 @@
+@import '../assets/styles/variables.scss';
+
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: $color-bg-light;
+  transition: background-color $transition-base;
+
+  .dark & {
+    background-color: $color-bg-dark;
+  }
+}
+
+.login-card {
+  background-color: $color-bg-secondary-light;
+  padding: $spacing-2xl;
+  border-radius: $radius-xl;
+  box-shadow: $shadow-xl;
+  width: 100%;
+  max-width: 450px;
+  border: 1px solid $color-border-light;
+
+  .dark & {
+    background-color: $color-bg-secondary-dark;
+    border-color: $color-border-dark;
+  }
+}
+
+.login-logo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: $spacing-lg;
+
+  svg {
+    width: 64px;
+    height: 64px;
+    padding: $spacing-md;
+    background-color: $color-primary;
+    color: white;
+    border-radius: $radius-lg;
+  }
+}
+
+.login-title {
+  font-size: $text-2xl;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: $spacing-sm;
+  color: $color-text-light;
+
+  .dark & {
+    color: $color-text-dark;
+  }
+}
+
+.login-desc {
+  text-align: center;
+  color: $color-text-secondary-light;
+  margin-bottom: $spacing-xl;
+
+  .dark & {
+    color: $color-text-secondary-dark;
+  }
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+  margin-bottom: $spacing-lg;
+}
+
+.login-footer {
+  text-align: center;
+  font-size: $text-sm;
+  color: $color-text-secondary-light;
+  margin-bottom: $spacing-xl;
+  padding-top: $spacing-lg;
+  border-top: 1px solid $color-border-light;
+
+  .dark & {
+    color: $color-text-secondary-dark;
+    border-color: $color-border-dark;
+  }
+
+  &__text {
+    margin-right: $spacing-xs;
+  }
+
+  &__link {
+    color: $color-primary;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    transition: opacity $transition-fast;
+
+    &:hover {
+      opacity: 0.8;
+      text-decoration: underline;
+    }
+  }
+}
+
+.login-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: $spacing-md;
+}
+
+.login-select {
+  background: transparent;
+  border: none;
+  font-size: $text-sm;
+  color: $color-text-secondary-light;
+  cursor: pointer;
+  outline: none;
+
+  .dark & {
+    color: $color-text-secondary-dark;
+  }
+
+  option {
+    background-color: $color-bg-secondary-light;
+
+    .dark & {
+      background-color: $color-bg-secondary-dark;
+    }
+  }
+}
+
+.btn--full {
+  width: 100%;
+}
+

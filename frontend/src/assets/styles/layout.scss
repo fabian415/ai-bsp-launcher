@@ -1,0 +1,314 @@
+@import './variables.scss';
+
+.app-container {
+  display: flex;
+  min-height: 100vh;
+  overflow: hidden;
+  font-family: sans-serif;
+  transition: background-color $transition-base, color $transition-base;
+}
+
+// Sidebar Styles
+.sidebar {
+  width: 16rem;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid $color-border-light;
+  background-color: $color-bg-secondary-light;
+  z-index: 20;
+
+  .dark & {
+    background-color: $color-bg-secondary-dark;
+    border-color: $color-border-dark;
+  }
+
+  &__header {
+    height: 4rem;
+    display: flex;
+    align-items: center;
+    padding: 0 $spacing-lg;
+    border-bottom: 1px solid $color-border-light;
+
+    .dark & {
+      border-color: $color-border-dark;
+    }
+  }
+
+  &__logo {
+    color: $color-primary;
+    margin-right: $spacing-md;
+  }
+
+  &__title {
+    font-weight: 700;
+    font-size: $text-lg;
+    letter-spacing: -0.025em;
+  }
+
+  &__nav {
+    flex: 1;
+    padding: $spacing-md;
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-sm;
+  }
+
+  &__footer {
+    padding: $spacing-md;
+    border-top: 1px solid $color-border-light;
+
+    .dark & {
+      border-color: $color-border-dark;
+    }
+  }
+}
+
+// Nav Item
+.nav-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: $spacing-md;
+  border-radius: $radius-lg;
+  font-size: $text-sm;
+  font-weight: 500;
+  transition: all $transition-fast;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: $color-text-secondary-light;
+  text-align: left;
+
+  .dark & {
+    color: $color-text-secondary-dark;
+  }
+
+  &:hover {
+    background-color: rgba($color-border-light, 0.5);
+
+    .dark & {
+      background-color: rgba($color-border-dark, 1);
+    }
+  }
+
+  &--active {
+    background-color: rgba($color-primary, 0.1);
+    color: $color-primary;
+
+    .dark & {
+      background-color: rgba($color-primary, 0.2);
+    }
+  }
+
+  svg {
+    margin-right: $spacing-md;
+  }
+}
+
+// Main Content Area
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+// Header
+.header {
+  height: 4rem;
+  background-color: $color-bg-secondary-light;
+  border-bottom: 1px solid $color-border-light;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 $spacing-lg;
+  flex-shrink: 0;
+
+  .dark & {
+    background-color: $color-bg-secondary-dark;
+    border-color: $color-border-dark;
+  }
+
+  &__breadcrumb {
+    display: flex;
+    align-items: center;
+    font-size: $text-sm;
+    color: $color-text-secondary-light;
+
+    .dark & {
+      color: $color-text-secondary-dark;
+    }
+
+    span {
+      cursor: pointer;
+      transition: color $transition-fast;
+
+      &:hover {
+        color: $color-text-light;
+
+        .dark & {
+          color: $color-text-dark;
+        }
+      }
+
+      &:last-child {
+        font-weight: 500;
+        color: $color-text-light;
+
+        .dark & {
+          color: $color-text-dark;
+        }
+      }
+    }
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: $spacing-md;
+  }
+}
+
+// Content Workspace
+.content-workspace {
+  flex: 1;
+  overflow: auto;
+  padding: $spacing-lg;
+  background-color: $color-bg-light;
+  transition: background-color $transition-base;
+
+  .dark & {
+    background-color: $color-bg-dark;
+  }
+}
+
+// Cards
+.card {
+  background-color: $color-bg-secondary-light;
+  border: 1px solid $color-border-light;
+  border-radius: $radius-xl;
+  padding: $spacing-lg;
+
+  .dark & {
+    background-color: $color-bg-secondary-dark;
+    border-color: $color-border-dark;
+  }
+
+  &__header {
+    margin-bottom: $spacing-md;
+  }
+
+  &__title {
+    font-weight: 600;
+    font-size: $text-lg;
+    color: $color-text-light;
+
+    .dark & {
+      color: $color-text-dark;
+    }
+  }
+}
+
+// Button Base
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-sm $spacing-lg;
+  border-radius: $radius-lg;
+  font-size: $text-sm;
+  font-weight: 600;
+  transition: all $transition-fast;
+  cursor: pointer;
+  border: none;
+  white-space: nowrap;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  svg {
+    margin-right: $spacing-sm;
+  }
+
+  &--primary {
+    background-color: $color-primary;
+    color: white;
+    box-shadow: 0 4px 14px 0 rgba($color-primary, 0.2);
+
+    &:hover:not(:disabled) {
+      background-color: $color-primary-hover;
+    }
+  }
+
+  &--secondary {
+    background-color: $color-text-light;
+    color: white;
+
+    .dark & {
+      background-color: rgba($color-text-secondary-dark, 0.5);
+    }
+
+    &:hover:not(:disabled) {
+      background-color: rgba($color-text-light, 0.8);
+
+      .dark & {
+        background-color: rgba($color-text-secondary-dark, 0.7);
+      }
+    }
+  }
+
+  &--icon {
+    padding: $spacing-sm;
+    border-radius: $radius-full;
+    color: $color-text-secondary-light;
+    background: transparent;
+
+    .dark & {
+      color: $color-text-secondary-dark;
+    }
+
+    &:hover {
+      background-color: rgba($color-border-light, 0.5);
+
+      .dark & {
+        background-color: rgba($color-border-dark, 1);
+      }
+    }
+  }
+}
+
+// Input Base
+.input {
+  width: 100%;
+  padding: $spacing-sm $spacing-md;
+  border-radius: $radius-lg;
+  border: 1px solid $color-border-light;
+  background-color: $color-bg-secondary-light;
+  color: $color-text-light;
+  font-size: $text-sm;
+  transition: all $transition-fast;
+
+  .dark & {
+    border-color: $color-border-dark;
+    background-color: $color-bg-dark;
+    color: $color-text-dark;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: $color-primary;
+    box-shadow: 0 0 0 3px rgba($color-primary, 0.1);
+  }
+
+  &::placeholder {
+    color: $color-text-secondary-light;
+
+    .dark & {
+      color: $color-text-secondary-dark;
+    }
+  }
+}
+

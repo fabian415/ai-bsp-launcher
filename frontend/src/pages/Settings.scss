@@ -1,0 +1,140 @@
+@import '../assets/styles/variables.scss';
+
+.settings {
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+
+  &__title {
+    font-size: $text-2xl;
+    font-weight: 700;
+    margin-bottom: $spacing-lg;
+    color: $color-text-light;
+
+    .dark & {
+      color: $color-text-dark;
+    }
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-lg;
+  }
+
+  &__section-title {
+    font-size: $text-lg;
+    font-weight: 600;
+    margin-bottom: $spacing-md;
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+    color: $color-text-light;
+
+    .dark & {
+      color: $color-text-dark;
+    }
+
+    svg {
+      color: $color-text-secondary-light;
+
+      .dark & {
+        color: $color-text-secondary-dark;
+      }
+    }
+  }
+
+  &__section {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-md;
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+  }
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.form-label {
+  font-size: $text-sm;
+  font-weight: 500;
+  color: $color-text-secondary-light;
+
+  .dark & {
+    color: $color-text-secondary-dark;
+  }
+}
+
+.input-group {
+  display: flex;
+  gap: 0;
+
+  .input {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  .btn {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    white-space: nowrap;
+  }
+}
+
+.toggle-group {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-sm 0;
+}
+
+.toggle-label {
+  color: $color-text-secondary-light;
+
+  .dark & {
+    color: $color-text-secondary-dark;
+  }
+}
+
+.toggle {
+  position: relative;
+  width: 48px;
+  height: 24px;
+  background-color: $color-border-light;
+  border-radius: $radius-full;
+  border: none;
+  cursor: pointer;
+  transition: background-color $transition-base;
+
+  .dark & {
+    background-color: $color-border-dark;
+  }
+
+  &--active {
+    background-color: $color-primary;
+  }
+
+  &__slider {
+    position: absolute;
+    left: 2px;
+    top: 2px;
+    width: 20px;
+    height: 20px;
+    background-color: white;
+    border-radius: $radius-full;
+    box-shadow: $shadow-sm;
+    transition: transform $transition-base;
+  }
+
+  &--active &__slider {
+    transform: translateX(24px);
+  }
+}
+
