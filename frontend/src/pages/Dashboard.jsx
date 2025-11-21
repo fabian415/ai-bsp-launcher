@@ -1,10 +1,43 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Activity, Cpu, HardDrive, FileCode } from 'lucide-react';
 import { useTranslation } from '../hooks/useTranslation';
+import { useWails } from '../hooks/useWails';
 import './Dashboard.scss';
 
 const Dashboard = () => {
   const { t } = useTranslation();
+  const { getSystemMetrics } = useWails();
+  
+  const [metrics, setMetrics] = useState({
+    cpu: { usagePercent: 0 },
+    memory: { usedGB: 0, totalGB: 0, usedPercent: 0 },
+    disk: { usedGB: 0, totalGB: 0, usedPercent: 0, path: '' }
+  });
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch system metrics
+  const fetchMetrics = async () => {
+    try {
+      const data = await getSystemMetrics();
+      setMetrics(data);
+      setIsLoading(false);
+    } catch (error) {
+      console.error('Failed to fetch system metrics:', error);
+      setIsLoading(false);
+    }
+  };
+
+  // Set up polling interval (2 seconds)
+  useEffect(() => {
+    // Fetch immediately on mount
+    fetchMetrics();
+
+    // Set up interval for subsequent fetches
+    const intervalId = setInterval(fetchMetrics, 2000);
+
+    // Cleanup interval on unmount
+    return () => clearInterval(intervalId);
+  }, []); // Empty dependency array means this runs once on mount
 
   const recentActivities = [
     { id: 1, title: 'Build QSC-8250 Kernel', time: '2 hours ago', duration: '14m 20s' },
@@ -23,9 +56,14 @@ const Dashboard = () => {
             <h3 className="stat-card__label">{t('cpuUsage')}</h3>
             <Activity className="stat-card__icon stat-card__icon--blue" size={20} />
           </div>
-          <div className="stat-card__value">12%</div>
+          <div className="stat-card__value">
+            {isLoading ? 'Loading...' : `${metrics.cpu.usagePercent.toFixed(1)}%`}
+          </div>
           <div className="stat-card__bar">
-            <div className="stat-card__progress stat-card__progress--blue" style={{ width: '12%' }} />
+            <div 
+              className="stat-card__progress stat-card__progress--blue" 
+              style={{ width: `${Math.min(metrics.cpu.usagePercent, 100)}%` }} 
+            />
           </div>
         </div>
 
@@ -34,9 +72,17 @@ const Dashboard = () => {
             <h3 className="stat-card__label">{t('ramUsage')}</h3>
             <Cpu className="stat-card__icon stat-card__icon--purple" size={20} />
           </div>
-          <div className="stat-card__value">8.4 GB</div>
+          <div className="stat-card__value">
+            {isLoading 
+              ? 'Loading...' 
+              : `${metrics.memory.usedGB.toFixed(1)} GB / ${metrics.memory.totalGB.toFixed(1)} GB`
+            }
+          </div>
           <div className="stat-card__bar">
-            <div className="stat-card__progress stat-card__progress--purple" style={{ width: '52%' }} />
+            <div 
+              className="stat-card__progress stat-card__progress--purple" 
+              style={{ width: `${Math.min(metrics.memory.usedPercent, 100)}%` }} 
+            />
           </div>
         </div>
 
@@ -45,9 +91,17 @@ const Dashboard = () => {
             <h3 className="stat-card__label">{t('diskUsage')}</h3>
             <HardDrive className="stat-card__icon stat-card__icon--green" size={20} />
           </div>
-          <div className="stat-card__value">450 GB</div>
+          <div className="stat-card__value">
+            {isLoading 
+              ? 'Loading...' 
+              : `${metrics.disk.usedGB.toFixed(0)} GB / ${metrics.disk.totalGB.toFixed(0)} GB`
+            }
+          </div>
           <div className="stat-card__bar">
-            <div className="stat-card__progress stat-card__progress--green" style={{ width: '45%' }} />
+            <div 
+              className="stat-card__progress stat-card__progress--green" 
+              style={{ width: `${Math.min(metrics.disk.usedPercent, 100)}%` }} 
+            />
           </div>
         </div>
       </div>
