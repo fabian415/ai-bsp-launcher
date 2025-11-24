@@ -31,32 +31,43 @@ export const MOCK_PLATFORMS = [
 
 export const MOCK_DOWNLOADS = [
   { 
-    id: 1, 
-    name: 'QSC-8250_L.35.4.1_BSP.tar.gz', 
-    size: '4.2 GB', 
-    date: '2023-10-15', 
-    status: 'downloaded' 
-  },
-  { 
-    id: 2, 
-    name: 'AGX-Orin_R35.3.1_Source.tbz2', 
-    size: '6.8 GB', 
-    date: '2023-10-12', 
-    status: 'downloading', 
-    progress: 45 
-  },
-  { 
-    id: 3, 
-    name: 'RK3588_Android12_SDK_v1.0.zip', 
-    size: '12.5 GB', 
-    date: '2023-09-28', 
+    id: 'sample-1', 
+    name: 'sample-10mb.zip',
+    fileName: 'sample-10mb.zip',
+    url: 'http://ipv4.download.thinkbroadband.com/10MB.zip',
+    size: '10 MB',
+    totalBytes: 10 * 1024 * 1024,
+    description: 'Sample 10MB file for testing',
     status: 'idle' 
   },
   { 
-    id: 4, 
-    name: 'IMX8M-PLUS_Yocto_Kirkstone.iso', 
-    size: '2.1 GB', 
-    date: '2023-09-20', 
+    id: 'sample-2', 
+    name: 'sample-50mb.zip',
+    fileName: 'sample-50mb.zip',
+    url: 'http://ipv4.download.thinkbroadband.com/50MB.zip',
+    size: '50 MB',
+    totalBytes: 50 * 1024 * 1024,
+    description: 'Sample 50MB file for testing',
+    status: 'idle' 
+  },
+  { 
+    id: 'sample-3', 
+    name: 'ubuntu-22.04.5-desktop-amd64.iso',
+    fileName: 'ubuntu-22.04.5-desktop-amd64.iso',
+    url: 'https://releases.ubuntu.com/22.04.5/ubuntu-22.04.5-desktop-amd64.iso',
+    size: '4.9 GB',
+    totalBytes: 4900 * 1024 * 1024,
+    description: 'Ubuntu 22.04.5 LTS Desktop ISO',
+    status: 'idle' 
+  },
+  { 
+    id: 'sample-4', 
+    name: 'alpine-standard-3.20.3-x86_64.iso',
+    fileName: 'alpine-standard-3.20.3-x86_64.iso',
+    url: 'https://dl-cdn.alpinelinux.org/alpine/v3.20/releases/x86_64/alpine-standard-3.20.3-x86_64.iso',
+    size: '208 MB',
+    totalBytes: 208 * 1024 * 1024,
+    description: 'Alpine Linux 3.20.3 Standard ISO',
     status: 'idle' 
   },
 ];

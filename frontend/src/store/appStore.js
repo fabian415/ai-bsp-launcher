@@ -42,6 +42,64 @@ export const useAppStore = create((set, get) => ({
   addLog: (log) => set((state) => ({ logs: [...state.logs, log] })),
   resetBuild: () => set({ buildStatus: 'ready', progress: 0, logs: [] }),
 
+  // Download Management
+  downloads: [],
+  activeDownloadsCount: 0,
+  
+  addDownload: (download) => set((state) => {
+    const exists = state.downloads.find(d => d.id === download.id);
+    if (exists) return state;
+    
+    const newDownloads = [...state.downloads, download];
+    const activeCount = newDownloads.filter(d => d.status === 'downloading').length;
+    
+    return { 
+      downloads: newDownloads,
+      activeDownloadsCount: activeCount
+    };
+  }),
+  
+  updateDownload: (id, updates) => set((state) => {
+    const downloads = state.downloads.map(d => 
+      d.id === id ? { ...d, ...updates } : d
+    );
+    const activeCount = downloads.filter(d => d.status === 'downloading').length;
+    
+    return { 
+      downloads,
+      activeDownloadsCount: activeCount
+    };
+  }),
+  
+  removeDownload: (id) => set((state) => {
+    const downloads = state.downloads.filter(d => d.id !== id);
+    const activeCount = downloads.filter(d => d.status === 'downloading').length;
+    
+    return { 
+      downloads,
+      activeDownloadsCount: activeCount
+    };
+  }),
+  
+  getDownloadById: (id) => {
+    const state = get();
+    return state.downloads.find(d => d.id === id);
+  },
+  
+  getActiveDownloads: () => {
+    const state = get();
+    return state.downloads.filter(d => d.status === 'downloading' || d.status === 'pending' || d.status === 'queued');
+  },
+  
+  getCompletedDownloads: () => {
+    const state = get();
+    return state.downloads.filter(d => d.status === 'completed');
+  },
+  
+  clearCompletedDownloads: () => set((state) => ({
+    downloads: state.downloads.filter(d => d.status !== 'completed')
+  })),
+
   // Initialize
   initialize: () => {
     // Auto-detect language

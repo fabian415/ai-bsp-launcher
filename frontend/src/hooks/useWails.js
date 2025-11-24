@@ -1,79 +1,23 @@
 // This hook encapsulates Wails API calls
-// Import actual Wails generated functions when available
-// Example: import { ValidateImageExisted, GetConfig } from '../../wailsjs/go/main/App';
-import { GetSystemMetrics, GetCPUUsage, GetMemoryUsage, GetDiskUsage } from '../../wailsjs/go/main/App';
+import { 
+  GetSystemMetrics, 
+  GetCPUUsage, 
+  GetMemoryUsage, 
+  GetDiskUsage,
+  SaveSettings,
+  GetSettings,
+  GetWorkspacePath,
+  SetWorkspacePath,
+  SelectDirectory
+} from '../../wailsjs/go/main/App';
 
 export const useWails = () => {
-  // Platform Management
-  const validateImageExisted = async (path) => {
-    try {
-      // TODO: Replace with actual Wails call
-      // return await ValidateImageExisted(path);
-      console.log('Validating image:', path);
-      return true;
-    } catch (error) {
-      console.error('Error validating image:', error);
-      return false;
-    }
-  };
-
-  // Config Management
-  const getConfig = async () => {
-    try {
-      // TODO: Replace with actual Wails call
-      // return await GetConfig();
-      console.log('Getting config');
-      return {};
-    } catch (error) {
-      console.error('Error getting config:', error);
-      return null;
-    }
-  };
-
-  const saveConfig = async (config) => {
-    try {
-      // TODO: Replace with actual Wails call
-      // return await SaveConfig(config);
-      console.log('Saving config:', config);
-      return true;
-    } catch (error) {
-      console.error('Error saving config:', error);
-      return false;
-    }
-  };
-
-  // Build Operations
-  const startBuild = async (platform, options) => {
-    try {
-      // TODO: Replace with actual Wails call
-      // return await StartBuild(platform, options);
-      console.log('Starting build for platform:', platform, options);
-      return { success: true };
-    } catch (error) {
-      console.error('Error starting build:', error);
-      return { success: false, error: error.message };
-    }
-  };
-
-  const flashImage = async (platform, imagePath) => {
-    try {
-      // TODO: Replace with actual Wails call
-      // return await FlashImage(platform, imagePath);
-      console.log('Flashing image:', platform, imagePath);
-      return { success: true };
-    } catch (error) {
-      console.error('Error flashing image:', error);
-      return { success: false, error: error.message };
-    }
-  };
-
   // File Operations
   const selectDirectory = async () => {
     try {
-      // TODO: Use Wails runtime dialog
-      // const result = await window.runtime.Dialog.SelectDirectory();
-      console.log('Selecting directory');
-      return '/home/user/bsp_workspace';
+      const result = await SelectDirectory();
+      console.log('Selected directory:', result);
+      return result || null;
     } catch (error) {
       console.error('Error selecting directory:', error);
       return null;
@@ -137,17 +81,68 @@ export const useWails = () => {
     }
   };
 
+  // Settings Management
+  const saveSettings = async (workspacePath, proxyURL, notificationsEnabled) => {
+    try {
+      console.log('Saving settings:', { workspacePath, proxyURL, notificationsEnabled });
+      await SaveSettings(workspacePath, proxyURL, notificationsEnabled);
+      console.log('Settings saved successfully');
+      
+      // Verify the settings were saved
+      const savedSettings = await GetSettings();
+      console.log('Verified saved settings:', savedSettings);
+      
+      return true;
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      console.error('Error details:', error?.message || String(error));
+      throw error;
+    }
+  };
+
+  const getSettings = async () => {
+    try {
+      const settings = await GetSettings();
+      console.log('Settings retrieved:', settings);
+      return settings;
+    } catch (error) {
+      console.error('Error getting settings:', error);
+      throw error;
+    }
+  };
+
+  const getWorkspacePath = async () => {
+    try {
+      const path = await GetWorkspacePath();
+      console.log('Workspace path retrieved:', path);
+      return path;
+    } catch (error) {
+      console.error('Error getting workspace path:', error);
+      return '';
+    }
+  };
+
+  const setWorkspacePath = async (path) => {
+    try {
+      await SetWorkspacePath(path);
+      console.log('Workspace path set to:', path);
+      return true;
+    } catch (error) {
+      console.error('Error setting workspace path:', error);
+      throw error;
+    }
+  };
+
   return {
-    validateImageExisted,
-    getConfig,
-    saveConfig,
-    startBuild,
-    flashImage,
     selectDirectory,
     getSystemMetrics,
     getCPUUsage,
     getMemoryUsage,
-    getDiskUsage
+    getDiskUsage,
+    saveSettings,
+    getSettings,
+    getWorkspacePath,
+    setWorkspacePath
   };
 };
 

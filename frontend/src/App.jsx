@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAppStore } from './store/appStore';
+import { useNotifications } from './hooks/useNotifications';
 
 // Layouts
 import DefaultLayout from './layouts/DefaultLayout';
@@ -18,10 +19,17 @@ import './assets/styles/base.scss';
 
 function App() {
   const { isAuthenticated, selectedPlatform, initialize } = useAppStore();
+  const { requestPermission, checkPermission } = useNotifications();
 
   useEffect(() => {
     initialize();
-  }, [initialize]);
+    
+    // Request notification permission if not already granted
+    const permission = checkPermission();
+    if (permission === 'default') {
+      requestPermission();
+    }
+  }, [initialize, requestPermission, checkPermission]);
 
   if (!isAuthenticated) {
     return <Login />;
@@ -48,4 +56,5 @@ function App() {
 }
 
 export default App;
+
 
