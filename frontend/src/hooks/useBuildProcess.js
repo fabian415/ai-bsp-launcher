@@ -1,60 +1,106 @@
+import { useEffect, useRef } from 'react';
 import { useAppStore } from '../store/appStore';
+import { BuildPlatform, FlashPlatform, CancelBuildFlash } from '../../wailsjs/go/main/App';
+import { EventsOn, EventsOff } from '../../wailsjs/runtime/runtime';
 
 export const useBuildProcess = (showNotification) => {
-  const { buildStatus, progress, logs, setBuildStatus, setProgress, addLog, resetBuild } = useAppStore();
+  const { buildStatus, progress, logs, setBuildStatus, setProgress, addLog, resetBuild, selectedPlatform } = useAppStore();
+  const listenerCleanupRef = useRef([]);
 
-  const startProcess = (type) => {
-    if (buildStatus !== 'ready' && buildStatus !== 'completed') return;
+  useEffect(() => {
+    // Setup event listeners for build/flash logs
+    const logListener = EventsOn('build:log', (data) => {
+      const timestamp = new Date().toLocaleTimeString();
+      const logMessage = `[${timestamp}] ${data.message}`;
+      addLog(logMessage);
+    });
+
+    const completeListener = EventsOn('build:complete', (data) => {
+      setBuildStatus('completed');
+      setProgress(100);
+      
+      if (showNotification) {
+        const title = `${data.operation.charAt(0).toUpperCase() + data.operation.slice(1)} Complete`;
+        const message = `${data.platform} ${data.operation} completed successfully`;
+        showNotification(title, message, 'success');
+      }
+    });
+
+    const errorListener = EventsOn('build:error', (data) => {
+      setBuildStatus('failed');
+      addLog(`❌ Error: ${data.error}`);
+      
+      if (showNotification) {
+        showNotification('Operation Failed', data.error, 'error');
+      }
+    });
+
+    const cancelledListener = EventsOn('build:cancelled', (data) => {
+      setBuildStatus('ready');
+      addLog(`⚠️ ${data.operation.charAt(0).toUpperCase() + data.operation.slice(1)} cancelled by user`);
+      
+      if (showNotification) {
+        showNotification('Operation Cancelled', `${data.platform} ${data.operation} was cancelled`, 'info');
+      }
+    });
+
+    // Store cleanup functions
+    listenerCleanupRef.current = [logListener, completeListener, errorListener, cancelledListener];
+
+    return () => {
+      // Cleanup event listeners
+      listenerCleanupRef.current.forEach(cleanup => cleanup());
+    };
+  }, [addLog, setBuildStatus, setProgress, showNotification]);
+
+  const startProcess = async (type, platformID, bootOption) => {
+    if (buildStatus !== 'ready' && buildStatus !== 'completed') {
+      console.warn('Another operation is already in progress');
+      return;
+    }
     
+    if (!platformID) {
+      if (showNotification) {
+        showNotification('Error', 'Please select a platform first', 'error');
+      }
+      return;
+    }
+
+    if (!bootOption) {
+      bootOption = 'sd'; // Default to SD card
+    }
+
     const processType = type === 'build' ? 'building' : 'flashing';
     setBuildStatus(processType);
     resetBuild();
     setProgress(0);
 
-    const steps = type === 'build' 
-      ? [
-          'Initializing build environment...',
-          'Checking dependencies...',
-          'Compiling kernel...',
-          'Linking modules...',
-          'Generating rootfs...',
-          'Build Successful.'
-        ]
-      : [
-          'Detecting device...',
-          'Erasing partition...',
-          'Flashing bootloader...',
-          'Flashing system...',
-          'Verifying checksum...',
-          'Flash Complete.'
-        ];
-
-    let currentStep = 0;
-    const interval = setInterval(() => {
-      if (currentStep >= steps.length) {
-        clearInterval(interval);
-        setBuildStatus('completed');
-        setProgress(100);
-        
-        // Show completion notification
-        if (showNotification) {
-          const title = type === 'build' ? 'Build Complete' : 'Flash Complete';
-          const message = type === 'build' 
-            ? 'Compilation has been completed successfully' 
-            : 'Flashing process has been completed successfully';
-          showNotification(title, message, 'success');
-        }
-        
-        return;
+    try {
+      if (type === 'build') {
+        await BuildPlatform(platformID, bootOption);
+      } else if (type === 'flash') {
+        await FlashPlatform(platformID, bootOption);
       }
+    } catch (error) {
+      console.error('Failed to start operation:', error);
+      setBuildStatus('failed');
+      addLog(`❌ Error: ${error.message || error}`);
+      
+      if (showNotification) {
+        showNotification('Operation Failed', error.message || 'Failed to start operation', 'error');
+      }
+    }
+  };
 
-      const newLog = `[${new Date().toLocaleTimeString()}] ${steps[currentStep]}`;
-      addLog(newLog);
-      setProgress(Math.min((currentStep + 1) * (100 / steps.length), 99));
-      currentStep++;
-    }, 800);
-
-    return () => clearInterval(interval);
+  const cancelProcess = async () => {
+    try {
+      await CancelBuildFlash();
+    } catch (error) {
+      console.error('Failed to cancel operation:', error);
+      if (showNotification) {
+        showNotification('Cancel Failed', error.message || 'Failed to cancel operation', 'error');
+      }
+    }
   };
 
   return {
@@ -62,6 +108,7 @@ export const useBuildProcess = (showNotification) => {
     progress,
     logs,
     startProcess,
+    cancelProcess,
     resetBuild
   };
 };

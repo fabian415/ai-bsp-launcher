@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Activity, Cpu, HardDrive, FileCode } from 'lucide-react';
+import { Activity, Cpu, HardDrive, FileCode, CheckCircle2, XCircle } from 'lucide-react';
 import { useTranslation } from '../hooks/useTranslation';
 import { useWails } from '../hooks/useWails';
+import { useActivities } from '../hooks/useActivities';
 import './Dashboard.scss';
 
 const Dashboard = () => {
   const { t } = useTranslation();
   const { getSystemMetrics } = useWails();
+  const { activities } = useActivities(10);
   
   const [metrics, setMetrics] = useState({
     cpu: { usagePercent: 0 },
@@ -39,11 +41,28 @@ const Dashboard = () => {
     return () => clearInterval(intervalId);
   }, []); // Empty dependency array means this runs once on mount
 
-  const recentActivities = [
-    { id: 1, title: 'Build QSC-8250 Kernel', time: '2 hours ago', duration: '14m 20s' },
-    { id: 2, title: 'Flash AGX-Orin Image', time: '5 hours ago', duration: '8m 45s' },
-    { id: 3, title: 'Build RK3588 Bootloader', time: '1 day ago', duration: '6m 12s' },
-  ];
+  // Format relative time
+  const formatRelativeTime = (timestamp) => {
+    const now = new Date();
+    const activityTime = new Date(timestamp);
+    const diffMs = now - activityTime;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins} ${diffMins === 1 ? 'minute' : 'minutes'} ago`;
+    if (diffHours < 24) return `${diffHours} ${diffHours === 1 ? 'hour' : 'hours'} ago`;
+    return `${diffDays} ${diffDays === 1 ? 'day' : 'days'} ago`;
+  };
+
+  // Format duration
+  const formatDuration = (seconds) => {
+    if (seconds < 60) return `${seconds}s`;
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}m ${secs}s`;
+  };
 
   return (
     <div className="dashboard">
@@ -112,22 +131,40 @@ const Dashboard = () => {
           <h3 className="card__title">{t('recentActivity')}</h3>
         </div>
         <div className="activity-list">
-          {recentActivities.map((activity) => (
-            <div key={activity.id} className="activity-item">
-              <div className="activity-item__icon">
-                <FileCode size={18} />
-              </div>
-              <div className="activity-item__content">
-                <div className="activity-item__header">
-                  <span className="activity-item__title">{activity.title}</span>
-                  <span className="activity-item__time">{activity.time}</span>
-                </div>
-                <p className="activity-item__description">
-                  Completed successfully in {activity.duration}
-                </p>
-              </div>
+          {activities.length === 0 ? (
+            <div className="activity-item activity-item--empty">
+              <p className="activity-item__empty-text">No recent activities</p>
             </div>
-          ))}
+          ) : (
+            activities.map((activity) => (
+              <div key={activity.id} className="activity-item">
+                <div className={`activity-item__icon ${activity.status === 'success' ? 'activity-item__icon--success' : 'activity-item__icon--error'}`}>
+                  {activity.status === 'success' ? (
+                    <CheckCircle2 size={18} />
+                  ) : (
+                    <XCircle size={18} />
+                  )}
+                </div>
+                <div className="activity-item__content">
+                  <div className="activity-item__header">
+                    <span className="activity-item__title">
+                      {activity.operation.charAt(0).toUpperCase() + activity.operation.slice(1)} {activity.platformName}
+                    </span>
+                    <span className="activity-item__time">{formatRelativeTime(activity.timestamp)}</span>
+                  </div>
+                  <p className="activity-item__description">
+                    {activity.status === 'success' 
+                      ? `Completed successfully in ${formatDuration(activity.duration)}`
+                      : `Failed: ${activity.error || 'Unknown error'}`
+                    }
+                  </p>
+                  <span className={`activity-item__badge activity-item__badge--${activity.bootOption}`}>
+                    {activity.bootOption === 'sd' ? 'SD Card' : 'eMMC'} Boot
+                  </span>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>

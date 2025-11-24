@@ -1,5 +1,5 @@
-import React from 'react';
-import { Settings as SettingsIcon, Play, CheckCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { Settings as SettingsIcon, Play, CheckCircle, X } from 'lucide-react';
 import { useAppStore } from '../store/appStore';
 import { useTranslation } from '../hooks/useTranslation';
 import { useBuildProcess } from '../hooks/useBuildProcess';
@@ -11,9 +11,18 @@ const PlatformWorkspace = () => {
   const { t } = useTranslation();
   const { selectedPlatform, setSelectedPlatform } = useAppStore();
   const { showToast } = useNotifications();
-  const { buildStatus, progress, logs, startProcess } = useBuildProcess(showToast);
+  const { buildStatus, progress, logs, startProcess, cancelProcess } = useBuildProcess(showToast);
+  const [bootOption, setBootOption] = useState('sd');
 
   if (!selectedPlatform) return null;
+
+  const handleStartProcess = (type) => {
+    if (selectedPlatform && selectedPlatform.id) {
+      startProcess(type, selectedPlatform.id, bootOption);
+    }
+  };
+
+  const isProcessRunning = buildStatus === 'building' || buildStatus === 'flashing';
 
   return (
     <div className="platform-workspace">
@@ -32,22 +41,34 @@ const PlatformWorkspace = () => {
         </div>
         
         <div className="workspace-actions">
-          <button 
-            disabled={buildStatus === 'building' || buildStatus === 'flashing'}
-            onClick={() => startProcess('build')}
-            className="btn btn--secondary"
-          >
-            <SettingsIcon size={18} />
-            {t('build')}
-          </button>
-          <button 
-            disabled={buildStatus === 'building' || buildStatus === 'flashing'}
-            onClick={() => startProcess('flash')}
-            className="btn btn--primary"
-          >
-            <Play size={18} />
-            {t('flash')}
-          </button>
+          {isProcessRunning ? (
+            <button 
+              onClick={cancelProcess}
+              className="btn btn--danger"
+            >
+              <X size={18} />
+              Cancel
+            </button>
+          ) : (
+            <>
+              <button 
+                disabled={isProcessRunning}
+                onClick={() => handleStartProcess('build')}
+                className="btn btn--secondary"
+              >
+                <SettingsIcon size={18} />
+                {t('build')}
+              </button>
+              <button 
+                disabled={isProcessRunning}
+                onClick={() => handleStartProcess('flash')}
+                className="btn btn--primary"
+              >
+                <Play size={18} />
+                {t('flash')}
+              </button>
+            </>
+          )}
         </div>
       </div>
 
@@ -78,14 +99,28 @@ const PlatformWorkspace = () => {
             <h3 className="card__title">Quick Config</h3>
             <div className="config-options">
               <label className="config-option">
-                <input type="radio" name="boot" defaultChecked />
+                <input 
+                  type="radio" 
+                  name="boot" 
+                  value="sd"
+                  checked={bootOption === 'sd'}
+                  onChange={(e) => setBootOption(e.target.value)}
+                  disabled={isProcessRunning}
+                />
                 <div className="config-option__content">
                   <span className="config-option__title">SD Card Boot</span>
                   <span className="config-option__desc">Flash to external storage</span>
                 </div>
               </label>
               <label className="config-option">
-                <input type="radio" name="boot" />
+                <input 
+                  type="radio" 
+                  name="boot" 
+                  value="emmc"
+                  checked={bootOption === 'emmc'}
+                  onChange={(e) => setBootOption(e.target.value)}
+                  disabled={isProcessRunning}
+                />
                 <div className="config-option__content">
                   <span className="config-option__title">eMMC Boot</span>
                   <span className="config-option__desc">Flash to internal storage</span>

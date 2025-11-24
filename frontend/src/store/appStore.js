@@ -100,6 +100,15 @@ export const useAppStore = create((set, get) => ({
     downloads: state.downloads.filter(d => d.status !== 'completed')
   })),
 
+  // Activity Management
+  activities: [],
+  
+  setActivities: (activities) => set({ activities }),
+  
+  addActivity: (activity) => set((state) => ({
+    activities: [activity, ...state.activities]
+  })),
+
   // Initialize
   initialize: () => {
     // Auto-detect language
