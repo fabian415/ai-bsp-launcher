@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -9,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"sync"
 	"time"
@@ -22,10 +24,39 @@ import (
 
 // App struct
 type App struct {
-	ctx             context.Context
-	downloadManager *DownloadManager
-	settings        *AppSettings
-	settingsFile    string
+	ctx                context.Context
+	downloadManager    *DownloadManager
+	settings           *AppSettings
+	settingsFile       string
+	buildProcess       *BuildProcess
+	activitiesFile     string
+	activities         []ActivityItem
+	activitiesMu       sync.RWMutex
+}
+
+// BuildProcess represents an active build or flash operation
+type BuildProcess struct {
+	isRunning     bool
+	operation     string // "build" or "flash"
+	platformID    string
+	platformName  string
+	bootOption    string
+	startTime     time.Time
+	cancelFunc    context.CancelFunc
+	mu            sync.RWMutex
+}
+
+// ActivityItem represents a completed build or flash operation
+type ActivityItem struct {
+	ID           string    `json:"id"`
+	Timestamp    time.Time `json:"timestamp"`
+	PlatformID   string    `json:"platformID"`
+	PlatformName string    `json:"platformName"`
+	Operation    string    `json:"operation"` // "build" or "flash"
+	Status       string    `json:"status"`    // "success" or "failed"
+	Duration     int       `json:"duration"`  // seconds
+	BootOption   string    `json:"bootOption"`
+	Error        string    `json:"error,omitempty"`
 }
 
 // AppSettings stores application configuration
@@ -90,10 +121,16 @@ func NewApp() *App {
 		homeDir = "."
 	}
 	settingsFile := filepath.Join(homeDir, ".bsp-launcher-settings.json")
+	activitiesFile := filepath.Join(homeDir, ".bsp-launcher-activities.json")
 	
 	app := &App{
-		settings:     settings,
-		settingsFile: settingsFile,
+		settings:       settings,
+		settingsFile:   settingsFile,
+		activitiesFile: activitiesFile,
+		activities:     make([]ActivityItem, 0),
+		buildProcess: &BuildProcess{
+			isRunning: false,
+		},
 	}
 	
 	app.downloadManager = NewDownloadManager(app)
@@ -109,6 +146,13 @@ func (a *App) startup(ctx context.Context) {
 		wailsRuntime.LogWarning(a.ctx, fmt.Sprintf("Could not load settings: %v", err))
 	} else {
 		wailsRuntime.LogInfo(a.ctx, "Settings loaded successfully on startup")
+	}
+	
+	// Load activities from file
+	if err := a.loadActivitiesFromFile(); err != nil {
+		wailsRuntime.LogWarning(a.ctx, fmt.Sprintf("Could not load activities: %v", err))
+	} else {
+		wailsRuntime.LogInfo(a.ctx, "Activities loaded successfully on startup")
 	}
 }
 
@@ -961,4 +1005,383 @@ func (a *App) SelectDirectory() string {
 	}
 
 	return selectedPath
+}
+
+// getPlatformName returns the full platform name for a given platform ID
+func (a *App) getPlatformName(platformID string) string {
+	platformNames := map[string]string{
+		"qcom":     "Qualcomm Snapdragon QSC-8250",
+		"nvidia":   "NVIDIA Jetson Orin AGX-Orin-32G",
+		"rockchip": "Rockchip RK3588",
+		"nxp":      "NXP i.MX 8M Plus IMX8M-PLUS",
+	}
+	
+	if name, exists := platformNames[platformID]; exists {
+		return name
+	}
+	return platformID
+}
+
+// getScriptPath returns the path to the Python script for a platform
+func (a *App) getScriptPath(platformID string) (string, error) {
+	scriptMap := map[string]string{
+		"qcom":     "qualcomm_qsc8250.py",
+		"nvidia":   "nvidia_agx_orin.py",
+		"rockchip": "rockchip_rk3588.py",
+		"nxp":      "nxp_imx8m.py",
+	}
+	
+	scriptName, exists := scriptMap[platformID]
+	if !exists {
+		return "", fmt.Errorf("unknown platform ID: %s", platformID)
+	}
+	
+	// Try multiple possible locations
+	possiblePaths := []string{
+		// Relative path (for development with wails dev)
+		filepath.Join("scripts", "platforms", scriptName),
+		// Relative to current working directory
+		filepath.Join(".", "scripts", "platforms", scriptName),
+	}
+	
+	// Try executable directory (for production build)
+	if exePath, err := os.Executable(); err == nil {
+		exeDir := filepath.Dir(exePath)
+		possiblePaths = append(possiblePaths, filepath.Join(exeDir, "scripts", "platforms", scriptName))
+	}
+	
+	// Check each possible path
+	for _, scriptPath := range possiblePaths {
+		absPath, err := filepath.Abs(scriptPath)
+		if err != nil {
+			continue
+		}
+		
+		if fileInfo, err := os.Stat(absPath); err == nil && !fileInfo.IsDir() {
+			wailsRuntime.LogInfo(a.ctx, fmt.Sprintf("Found script at: %s", absPath))
+			return absPath, nil
+		}
+	}
+	
+	// If not found, return error with all attempted paths
+	return "", fmt.Errorf("script not found: %s (tried: %v)", scriptName, possiblePaths)
+}
+
+// BuildPlatform executes a build operation for the specified platform
+func (a *App) BuildPlatform(platformID string, bootOption string) error {
+	return a.executePlatformOperation(platformID, bootOption, "build")
+}
+
+// FlashPlatform executes a flash operation for the specified platform
+func (a *App) FlashPlatform(platformID string, bootOption string) error {
+	return a.executePlatformOperation(platformID, bootOption, "flash")
+}
+
+// executePlatformOperation performs the actual build or flash operation
+func (a *App) executePlatformOperation(platformID string, bootOption string, operation string) error {
+	// Check if another operation is running
+	a.buildProcess.mu.Lock()
+	if a.buildProcess.isRunning {
+		a.buildProcess.mu.Unlock()
+		return fmt.Errorf("another operation is in progress")
+	}
+	a.buildProcess.isRunning = true
+	a.buildProcess.operation = operation
+	a.buildProcess.platformID = platformID
+	a.buildProcess.platformName = a.getPlatformName(platformID)
+	a.buildProcess.bootOption = bootOption
+	a.buildProcess.startTime = time.Now()
+	a.buildProcess.mu.Unlock()
+	
+	// Check if Python is available (try both python and python3)
+	pythonCmd := ""
+	if path, err := exec.LookPath("python"); err == nil {
+		pythonCmd = path
+		wailsRuntime.LogInfo(a.ctx, fmt.Sprintf("Found python at: %s", path))
+	} else if path, err := exec.LookPath("python3"); err == nil {
+		pythonCmd = path
+		wailsRuntime.LogInfo(a.ctx, fmt.Sprintf("Found python3 at: %s", path))
+	} else {
+		a.buildProcess.mu.Lock()
+		a.buildProcess.isRunning = false
+		a.buildProcess.mu.Unlock()
+		return fmt.Errorf("Python is required but not found. Please install Python 3.8+ and ensure it's in your PATH")
+	}
+	
+	// Get script path
+	scriptPath, err := a.getScriptPath(platformID)
+	if err != nil {
+		a.buildProcess.mu.Lock()
+		a.buildProcess.isRunning = false
+		a.buildProcess.mu.Unlock()
+		return err
+	}
+	
+	wailsRuntime.LogInfo(a.ctx, fmt.Sprintf("Starting %s for %s with boot option: %s", operation, platformID, bootOption))
+	wailsRuntime.LogInfo(a.ctx, fmt.Sprintf("Python command: %s", pythonCmd))
+	wailsRuntime.LogInfo(a.ctx, fmt.Sprintf("Script path: %s", scriptPath))
+	
+	// Execute in goroutine
+	go a.runPlatformScript(pythonCmd, scriptPath, operation, bootOption)
+	
+	return nil
+}
+
+// runPlatformScript runs the Python script and streams output
+func (a *App) runPlatformScript(pythonCmd string, scriptPath string, operation string, bootOption string) {
+	// Create cancellable context
+	ctx, cancel := context.WithCancel(context.Background())
+	
+	a.buildProcess.mu.Lock()
+	a.buildProcess.cancelFunc = cancel
+	startTime := a.buildProcess.startTime
+	platformName := a.buildProcess.platformName
+	platformID := a.buildProcess.platformID
+	a.buildProcess.mu.Unlock()
+	
+	// Create command
+	cmd := exec.CommandContext(ctx, pythonCmd, scriptPath, "--operation", operation, "--boot-option", bootOption)
+	
+	// Log the full command for debugging
+	wailsRuntime.LogInfo(a.ctx, fmt.Sprintf("Executing: %s %s --operation %s --boot-option %s", pythonCmd, scriptPath, operation, bootOption))
+	
+	// Get stdout and stderr pipes
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		a.handleBuildError(fmt.Errorf("failed to get stdout: %v", err))
+		return
+	}
+	
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		a.handleBuildError(fmt.Errorf("failed to get stderr: %v", err))
+		return
+	}
+	
+	// Start the command
+	if err := cmd.Start(); err != nil {
+		a.handleBuildError(fmt.Errorf("failed to start script: %v", err))
+		return
+	}
+	
+	// Stream stdout in goroutine
+	var wg sync.WaitGroup
+	wg.Add(2)
+	
+	go func() {
+		defer wg.Done()
+		scanner := bufio.NewScanner(stdout)
+		for scanner.Scan() {
+			line := scanner.Text()
+			wailsRuntime.EventsEmit(a.ctx, "build:log", map[string]string{
+				"type":    "stdout",
+				"message": line,
+			})
+		}
+	}()
+	
+	go func() {
+		defer wg.Done()
+		scanner := bufio.NewScanner(stderr)
+		for scanner.Scan() {
+			line := scanner.Text()
+			wailsRuntime.EventsEmit(a.ctx, "build:log", map[string]string{
+				"type":    "stderr",
+				"message": line,
+			})
+		}
+	}()
+	
+	// Wait for command to complete
+	wg.Wait()
+	err = cmd.Wait()
+	
+	// Calculate duration
+	duration := int(time.Since(startTime).Seconds())
+	
+	// Handle completion
+	a.buildProcess.mu.Lock()
+	a.buildProcess.isRunning = false
+	a.buildProcess.cancelFunc = nil
+	a.buildProcess.mu.Unlock()
+	
+	if err != nil {
+		if ctx.Err() == context.Canceled {
+			// User cancelled
+			wailsRuntime.EventsEmit(a.ctx, "build:cancelled", map[string]interface{}{
+				"operation": operation,
+				"platform":  platformName,
+			})
+			wailsRuntime.LogInfo(a.ctx, fmt.Sprintf("%s cancelled by user", operation))
+		} else {
+			// Script error
+			errorMsg := fmt.Sprintf("Script failed: %v", err)
+			a.handleBuildError(fmt.Errorf(errorMsg))
+			
+			// Create failed activity
+			a.createActivity(platformID, platformName, operation, bootOption, "failed", duration, errorMsg)
+			
+			// Show notification
+			title := fmt.Sprintf("%s Failed", capitalizeFirst(operation))
+			message := fmt.Sprintf("%s %s failed", platformName, operation)
+			a.ShowNotification(title, message)
+		}
+	} else {
+		// Success
+		wailsRuntime.EventsEmit(a.ctx, "build:complete", map[string]interface{}{
+			"operation": operation,
+			"platform":  platformName,
+			"duration":  duration,
+		})
+		
+		// Create success activity
+		a.createActivity(platformID, platformName, operation, bootOption, "success", duration, "")
+		
+		// Show notification
+		title := fmt.Sprintf("%s Complete", capitalizeFirst(operation))
+		message := fmt.Sprintf("%s %s completed successfully", platformName, operation)
+		a.ShowNotification(title, message)
+		
+		wailsRuntime.LogInfo(a.ctx, fmt.Sprintf("%s completed successfully in %d seconds", operation, duration))
+	}
+}
+
+// handleBuildError handles errors during build/flash operations
+func (a *App) handleBuildError(err error) {
+	a.buildProcess.mu.Lock()
+	a.buildProcess.isRunning = false
+	a.buildProcess.cancelFunc = nil
+	a.buildProcess.mu.Unlock()
+	
+	wailsRuntime.EventsEmit(a.ctx, "build:error", map[string]string{
+		"error": err.Error(),
+	})
+	wailsRuntime.LogError(a.ctx, err.Error())
+}
+
+// CancelBuildFlash cancels the currently running build or flash operation
+func (a *App) CancelBuildFlash() error {
+	a.buildProcess.mu.Lock()
+	defer a.buildProcess.mu.Unlock()
+	
+	if !a.buildProcess.isRunning {
+		return fmt.Errorf("no operation is running")
+	}
+	
+	if a.buildProcess.cancelFunc != nil {
+		a.buildProcess.cancelFunc()
+	}
+	
+	return nil
+}
+
+// createActivity creates a new activity entry and saves it
+func (a *App) createActivity(platformID, platformName, operation, bootOption, status string, duration int, errorMsg string) {
+	activity := ActivityItem{
+		ID:           uuid.New().String(),
+		Timestamp:    time.Now(),
+		PlatformID:   platformID,
+		PlatformName: platformName,
+		Operation:    operation,
+		Status:       status,
+		Duration:     duration,
+		BootOption:   bootOption,
+		Error:        errorMsg,
+	}
+	
+	a.activitiesMu.Lock()
+	a.activities = append([]ActivityItem{activity}, a.activities...)
+	
+	// Prune to keep only last 100 activities
+	if len(a.activities) > 100 {
+		a.activities = a.activities[:100]
+	}
+	a.activitiesMu.Unlock()
+	
+	// Save to file
+	if err := a.saveActivitiesToFile(); err != nil {
+		wailsRuntime.LogWarning(a.ctx, fmt.Sprintf("Failed to save activities: %v", err))
+	}
+}
+
+// GetRecentActivities returns the most recent activities
+func (a *App) GetRecentActivities(limit int) []ActivityItem {
+	if limit <= 0 {
+		limit = 10
+	}
+	
+	a.activitiesMu.RLock()
+	defer a.activitiesMu.RUnlock()
+	
+	if len(a.activities) <= limit {
+		return a.activities
+	}
+	
+	return a.activities[:limit]
+}
+
+// loadActivitiesFromFile loads activities from JSON file
+func (a *App) loadActivitiesFromFile() error {
+	data, err := os.ReadFile(a.activitiesFile)
+	if err != nil {
+		if os.IsNotExist(err) {
+			// File doesn't exist yet, use empty list
+			return nil
+		}
+		return fmt.Errorf("failed to read activities file: %v", err)
+	}
+	
+	var fileData struct {
+		Activities []ActivityItem `json:"activities"`
+	}
+	
+	if err := json.Unmarshal(data, &fileData); err != nil {
+		// Corrupted file, backup and start fresh
+		backupPath := a.activitiesFile + ".bak"
+		os.Rename(a.activitiesFile, backupPath)
+		wailsRuntime.LogWarning(a.ctx, fmt.Sprintf("Corrupted activities file backed up to: %s", backupPath))
+		return nil
+	}
+	
+	a.activitiesMu.Lock()
+	a.activities = fileData.Activities
+	a.activitiesMu.Unlock()
+	
+	return nil
+}
+
+// saveActivitiesToFile persists activities to JSON file
+func (a *App) saveActivitiesToFile() error {
+	a.activitiesMu.RLock()
+	fileData := struct {
+		Activities []ActivityItem `json:"activities"`
+	}{
+		Activities: a.activities,
+	}
+	a.activitiesMu.RUnlock()
+	
+	data, err := json.MarshalIndent(fileData, "", "  ")
+	if err != nil {
+		return fmt.Errorf("failed to serialize activities: %v", err)
+	}
+	
+	// Atomic write: write to temp file, then rename
+	tempFile := a.activitiesFile + ".tmp"
+	if err := os.WriteFile(tempFile, data, 0644); err != nil {
+		return fmt.Errorf("failed to write activities file: %v", err)
+	}
+	
+	if err := os.Rename(tempFile, a.activitiesFile); err != nil {
+		return fmt.Errorf("failed to rename activities file: %v", err)
+	}
+	
+	return nil
+}
+
+// capitalizeFirst capitalizes the first letter of a string
+func capitalizeFirst(s string) string {
+	if len(s) == 0 {
+		return s
+	}
+	return string(s[0]-32) + s[1:]
 }
