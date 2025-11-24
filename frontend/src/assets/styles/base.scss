@@ -115,3 +115,99 @@ button, input, select, textarea {
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
+// Toast Notification Styles
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 420px;
+  pointer-events: none;
+}
+
+.toast {
+  background: white;
+  border-radius: $radius-md;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1), 
+              0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 16px;
+  pointer-events: all;
+  animation: slideInRight 0.3s ease-out;
+  transition: opacity 0.3s ease;
+  border-left: 4px solid $color-primary;
+  
+  .dark & {
+    background: #2d2d2d;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3), 
+                0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  &__header {
+    font-weight: 600;
+    font-size: 15px;
+    margin-bottom: 4px;
+    color: $color-text-light;
+    
+    .dark & {
+      color: $color-text-dark;
+    }
+  }
+  
+  &__body {
+    font-size: 14px;
+    color: $color-text-secondary-light;
+    line-height: 1.4;
+    
+    .dark & {
+      color: $color-text-secondary-dark;
+    }
+  }
+  
+  &--success {
+    border-left-color: #10b981;
+    
+    .toast__header {
+      color: #10b981;
+    }
+  }
+  
+  &--error {
+    border-left-color: #ef4444;
+    
+    .toast__header {
+      color: #ef4444;
+    }
+  }
+  
+  &--info {
+    border-left-color: $color-primary;
+    
+    .toast__header {
+      color: $color-primary;
+    }
+  }
+  
+  &--warning {
+    border-left-color: #f59e0b;
+    
+    .toast__header {
+      color: #f59e0b;
+    }
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+

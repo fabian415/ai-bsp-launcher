@@ -1,12 +1,13 @@
 import { useAppStore } from '../store/appStore';
 
-export const useBuildProcess = () => {
+export const useBuildProcess = (showNotification) => {
   const { buildStatus, progress, logs, setBuildStatus, setProgress, addLog, resetBuild } = useAppStore();
 
   const startProcess = (type) => {
     if (buildStatus !== 'ready' && buildStatus !== 'completed') return;
     
-    setBuildStatus(type === 'build' ? 'building' : 'flashing');
+    const processType = type === 'build' ? 'building' : 'flashing';
+    setBuildStatus(processType);
     resetBuild();
     setProgress(0);
 
@@ -34,6 +35,16 @@ export const useBuildProcess = () => {
         clearInterval(interval);
         setBuildStatus('completed');
         setProgress(100);
+        
+        // Show completion notification
+        if (showNotification) {
+          const title = type === 'build' ? 'Build Complete' : 'Flash Complete';
+          const message = type === 'build' 
+            ? 'Compilation has been completed successfully' 
+            : 'Flashing process has been completed successfully';
+          showNotification(title, message, 'success');
+        }
+        
         return;
       }
 
@@ -54,4 +65,5 @@ export const useBuildProcess = () => {
     resetBuild
   };
 };
+
 

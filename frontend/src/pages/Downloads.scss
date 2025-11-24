@@ -173,6 +173,15 @@
       background-color: rgba($color-success, 0.2);
     }
   }
+
+  &--error {
+    background-color: rgba($color-error, 0.1);
+    color: $color-error;
+
+    .dark & {
+      background-color: rgba($color-error, 0.2);
+    }
+  }
 }
 
 .btn-link {
@@ -188,6 +197,214 @@
 
   &:hover {
     color: $color-primary-hover;
+  }
+}
+
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-xs;
+  background: transparent;
+  border: 1px solid $color-border-light;
+  border-radius: $radius-md;
+  cursor: pointer;
+  transition: all $transition-fast;
+  color: $color-text-secondary-light;
+
+  .dark & {
+    border-color: $color-border-dark;
+    color: $color-text-secondary-dark;
+  }
+
+  &:hover {
+    background-color: rgba($color-border-light, 0.5);
+
+    .dark & {
+      background-color: rgba($color-border-dark, 0.8);
+    }
+  }
+
+  &--sm {
+    padding: 4px;
+  }
+
+  &--primary {
+    border-color: $color-primary;
+    color: $color-primary;
+
+    &:hover {
+      background-color: rgba($color-primary, 0.1);
+    }
+  }
+
+  &--danger {
+    border-color: $color-error;
+    color: $color-error;
+
+    &:hover {
+      background-color: rgba($color-error, 0.1);
+    }
+  }
+}
+
+.download-active {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+  min-width: 300px;
+
+  &__info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: $text-xs;
+  }
+
+  &__progress-text {
+    color: $color-primary;
+    font-weight: 500;
+  }
+
+  &__bytes {
+    color: $color-text-secondary-light;
+
+    .dark & {
+      color: $color-text-secondary-dark;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    gap: $spacing-sm;
+    justify-content: flex-end;
+  }
+}
+
+.download-progress__fill {
+  &--paused {
+    background-color: $color-warning;
+  }
+}
+
+.download-queued {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  font-size: $text-xs;
+  color: $color-text-secondary-light;
+
+  .dark & {
+    color: $color-text-secondary-dark;
+  }
+}
+
+.download-failed {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+  align-items: flex-end;
+
+  &__error {
+    font-size: $text-xs;
+    color: $color-text-secondary-light;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    .dark & {
+      color: $color-text-secondary-dark;
+    }
+  }
+}
+
+.action-cell {
+  min-width: 320px;
+}
+
+.file-description {
+  color: $color-text-secondary-light;
+  font-size: $text-sm;
+
+  .dark & {
+    color: $color-text-secondary-dark;
+  }
+}
+
+.downloads__summary {
+  margin-top: $spacing-lg;
+  padding: $spacing-md;
+  background-color: rgba($color-border-light, 0.2);
+  border-radius: $radius-lg;
+  font-size: $text-sm;
+  color: $color-text-secondary-light;
+
+  .dark & {
+    background-color: rgba($color-border-dark, 0.3);
+    color: $color-text-secondary-dark;
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+// Toast Notifications
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+  max-width: 400px;
+}
+
+.toast {
+  background-color: $color-bg-secondary-light;
+  border: 1px solid $color-border-light;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-lg;
+  padding: $spacing-md;
+  transition: opacity 0.3s ease;
+
+  .dark & {
+    background-color: $color-bg-secondary-dark;
+    border-color: $color-border-dark;
+  }
+
+  &--success {
+    border-left: 4px solid $color-success;
+  }
+
+  &--error {
+    border-left: 4px solid $color-error;
+  }
+
+  &--info {
+    border-left: 4px solid $color-primary;
+  }
+
+  &__header {
+    margin-bottom: $spacing-xs;
+    font-size: $text-sm;
+    font-weight: 600;
+    color: $color-text-light;
+
+    .dark & {
+      color: $color-text-dark;
+    }
+  }
+
+  &__body {
+    font-size: $text-xs;
+    color: $color-text-secondary-light;
+
+    .dark & {
+      color: $color-text-secondary-dark;
+    }
   }
 }
 

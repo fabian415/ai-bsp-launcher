@@ -54,3 +54,4 @@ const TerminalLog = ({ logs, buildStatus, progress }) => {
 
 export default TerminalLog;
 
+

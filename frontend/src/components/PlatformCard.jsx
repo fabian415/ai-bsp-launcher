@@ -36,3 +36,4 @@ const PlatformCard = ({ platform, onClick }) => {
 
 export default PlatformCard;
 
+

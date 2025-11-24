@@ -3,13 +3,15 @@ import { Settings as SettingsIcon, Play, CheckCircle } from 'lucide-react';
 import { useAppStore } from '../store/appStore';
 import { useTranslation } from '../hooks/useTranslation';
 import { useBuildProcess } from '../hooks/useBuildProcess';
+import { useNotifications } from '../hooks/useNotifications';
 import TerminalLog from '../components/TerminalLog';
 import './PlatformWorkspace.scss';
 
 const PlatformWorkspace = () => {
   const { t } = useTranslation();
   const { selectedPlatform, setSelectedPlatform } = useAppStore();
-  const { buildStatus, progress, logs, startProcess } = useBuildProcess();
+  const { showToast } = useNotifications();
+  const { buildStatus, progress, logs, startProcess } = useBuildProcess(showToast);
 
   if (!selectedPlatform) return null;
 
@@ -103,4 +105,5 @@ const PlatformWorkspace = () => {
 };
 
 export default PlatformWorkspace;
+
 
